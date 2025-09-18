@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>js practice</title>
+</head>
+<body>
+  <script>
+    //declaring variable
+let name = "Alice";
+console.log("name");
+
+// Changing Variables:
+let count = 10;
+count = 20;         // Updates to 20
+console.log(count); // Outputs: 20
+
+ const year = 2025;
+//  year = 2026;
+//  console.log(year); error Cannot change
+
+
+// Conditional Statements
+// Comparison Operators:
+ let age = 18;
+
+if (age >= 18) {
+
+  console.log("You are an adult.");
+
+} else {
+
+  console.log("You are a minor.");
+
+}
+// Logical Operators:
+let score = 85;
+
+let isPassing = true;
+
+if (score >= 60 && isPassing) {
+
+  console.log("You passed!");
+
+} else {
+
+  console.log("You failed.");
+
+}
+// Declaring a Function
+function add(a, b) {
+
+  return a + b;
+
+}
+
+let result = add(2, 3); 
+console.log(result);
+//  Function Expressions
+let multiply = function  (a, b) {
+  return a*b;
+}
+let result2 = multiply(2, 3);
+console.log(result2);
+
+// Arrow Functions
+
+const multiply2 = (a, b) => a * b;
+let resultt = multiply2(2, 3);
+console.log(resultt);
+
+    function processUserInput(callback) {
+      var name = prompt('Please enter your name.');
+      
+      callback(name);
+    }
+
+    function greet(name) {
+      alert('Hello ' + name);
+    }
+
+    processUserInput(greet);
+  </script>
+</body>
+</html>

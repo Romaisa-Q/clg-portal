@@ -141,7 +141,7 @@ export default function Attendance() {
     
     // Save to localStorage for daily attendance
     const existingData = JSON.parse(localStorage.getItem('attendance_records') || '[]');
-    const updatedData = existingData.filter((record) => record.date !== attendanceRecord.date);
+    const updatedData = existingData.filter(record => record.date !== attendanceRecord.date);
     updatedData.push(attendanceRecord);
     localStorage.setItem('attendance_records', JSON.stringify(updatedData));
     
@@ -170,7 +170,7 @@ export default function Attendance() {
     const { date, data } = dailyRecord;
     
     // Convert daily format to reports format
-    existingReportsData.daily[date] = data.map((student) => ({
+    existingReportsData.daily[date] = data.map(student => ({
       id: student.id,
       studentName: student.name,
       department: student.department,
@@ -181,7 +181,7 @@ export default function Attendance() {
     }));
 
     // Update students historical data
-    data.forEach((student) => {
+    data.forEach(student => {
       const studentKey = `${student.name}_${student.department}`;
       
       if (!existingReportsData.students[studentKey]) {
@@ -207,7 +207,7 @@ export default function Attendance() {
       const studentData = existingReportsData.students[studentKey];
       const history = studentData.attendanceHistory;
       const totalDays = Object.keys(history).length;
-      const presentDays = Object.values(history).filter((day) => day.status === 'present').length;
+      const presentDays = Object.values(history).filter(day => day.status === 'present').length;
       
       studentData.totalDays = totalDays;
       studentData.presentDays = presentDays;
@@ -238,7 +238,7 @@ export default function Attendance() {
         </div>
         <div className="flex items-center gap-2">
           <Button 
-            variant="outline" 
+            variant="neutral"
             className="flex items-center gap-2"
             onClick={handleSaveAttendance}
           >
@@ -246,7 +246,7 @@ export default function Attendance() {
             Save Attendance
           </Button>
           <Button 
-            variant="outline" 
+            variant="neutral"
             className="flex items-center gap-2"
             onClick={handleExport}
             disabled={filteredStudents.length === 0}
@@ -343,7 +343,7 @@ export default function Attendance() {
         </div>
         <div className="flex items-center gap-2">
           <Button 
-            variant="outline" 
+            variant="neutral"
             size="sm"
             onClick={() => handleCheckAll(true)}
             className="flex items-center gap-2"
@@ -352,7 +352,7 @@ export default function Attendance() {
             Mark All Present
           </Button>
           <Button 
-            variant="outline" 
+            variant="neutral"
             size="sm"
             onClick={() => handleCheckAll(false)}
             className="flex items-center gap-2"

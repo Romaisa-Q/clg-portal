@@ -5,11 +5,17 @@ import { cva } from "class-variance-authority";
 import { cn } from "./utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  // base classes (always applied)
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border", 
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        // new neutral default (used when no color given)
+        neutral:
+          "bg-white text-foreground border-gray-200 hover:bg-gray-50 active:bg-gray-100 dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+        // keep the old 'primary' style (use variant="primary" to get this)
+        primary:
+          "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
@@ -27,8 +33,9 @@ const buttonVariants = cva(
         icon: "size-9 rounded-md",
       },
     },
+    // default is neutral so "no color given" behaves as you requested
     defaultVariants: {
-      variant: "default",
+      variant: "neutral",
       size: "default",
     },
   }

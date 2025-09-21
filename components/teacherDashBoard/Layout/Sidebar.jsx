@@ -19,16 +19,15 @@ const sidebarItems = [
     ]
   },
   {
-  key: 'attendance',
-  label: 'Attendance',
-  icon: Calendar,
-  hasSubmenu: true,
-  submenu: [
-    { key: 'mark', label: 'Mark Attendance' },
-     { key: 'reports', label: 'Attendance Report' },
-   
-  ]
-},
+    key: 'attendance',
+    label: 'Attendance',
+    icon: Calendar,
+    hasSubmenu: true,
+    submenu: [
+      { key: 'mark', label: 'Mark Attendance' },
+      { key: 'reports', label: 'Attendance Report' },
+    ]
+  },
   { key: 'assignments', label: 'Assignments', icon: FileText },
   { key: 'announcements', label: 'Announcements', icon: ClipboardCheck },
   { key: 'schedule', label: 'Schedule', icon: Calendar },
@@ -42,10 +41,10 @@ export default function Sidebar({
   gradingSection,
   setGradingSection,
   attendanceSection,       
-  setAttendanceSection,     
+  setAttendanceSection,
+  setAssigmentSection,     
   onLogout = () => {}
-}) 
-{
+}) {
   const [openMenus, setOpenMenus] = useState({});
 
   const toggleMenu = (key) => {
@@ -53,7 +52,8 @@ export default function Sidebar({
   };
 
   const SidebarContent = (
-    <div className="flex flex-col h-full" style={{ backgroundColor: COLLEGE_COLORS.darkGreen }}>
+    // NOTE: min-h-0 is important so that the nav (flex child) can overflow/scroll correctly
+    <div className="flex flex-col h-screen min-h-0" style={{ backgroundColor: COLLEGE_COLORS.darkGreen }}>
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-white/10">
         <div className="flex items-center space-x-3">
@@ -77,8 +77,8 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4">
+      {/* Navigation - make this scrollable */}
+      <nav className="flex-1 overflow-y-auto p-4">
         <ul className="space-y-2">
           {sidebarItems.map((item) => (
             <li key={item.key}>
@@ -169,8 +169,8 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:block lg:w-72 lg:shrink-0">
+      {/* Desktop Sidebar: ensure it fills viewport height */}
+      <div className="hidden lg:block lg:w-72 lg:shrink-0 h-screen">
         {SidebarContent}
       </div>
 
@@ -181,7 +181,8 @@ export default function Sidebar({
             className="fixed inset-0 bg-black/50"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className="relative w-72 h-full bg-green-900 shadow-xl">
+          {/* make drawer full-height so its inner nav can scroll */}
+          <div className="relative w-72 h-screen bg-green-900 shadow-xl">
             {SidebarContent}
           </div>
         </div>

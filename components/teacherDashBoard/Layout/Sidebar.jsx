@@ -36,13 +36,18 @@ const sidebarItems = [
 export default function Sidebar({
   sidebarOpen,
   setSidebarOpen,
-  activeSection, 
+  activeSection,
   setActiveSection,
   gradingSection,
   setGradingSection,
-  attendanceSection,       
+  attendanceSection,
   setAttendanceSection,
-  setAssigmentSection,     
+  assigmentSection,
+  setAssigmentSection,
+  announcementSection,
+  setAnnouncementSection,
+  scheduleSection,          // ✅ receive here
+  setScheduleSection,       // ✅ receive here     
   onLogout = () => {}
 }) {
   const [openMenus, setOpenMenus] = useState({});

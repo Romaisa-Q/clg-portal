@@ -19,6 +19,7 @@ import ClassList from './MyClasses/ClassList';
 import Attendance from './Attendance/Attendance';
 import Assignments from './Assigments/assigments';
 import Announcements from './Annoucements/Annoucements';
+import Schedule from "./shedule/shedule";
 
 export default function Main() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export default function Main() {
   const [attendanceSection, setAttendanceSection] = useState('mark');
   const [assigmentSection, setAssigmentSection] = useState('assignments');
   const [announcementSection, setAnnouncementSection] = useState('announcements');
+   const [scheduleSection, setScheduleSection] = useState('schedule');
 
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -60,20 +62,23 @@ export default function Main() {
       )}
 
       <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-        gradingSection={gradingSection}
-        setGradingSection={setGradingSection}
-        attendanceSection={attendanceSection}
-        setAttendanceSection={setAttendanceSection}
-        assigmentSection={assigmentSection}
-        setAssigmentSection={setAssigmentSection}
-        announcementSection={announcementSection}
-        setAnnouncementSection={setAnnouncementSection}
-        onLogout={handleLogout}
-      />
+  sidebarOpen={sidebarOpen}
+  setSidebarOpen={setSidebarOpen}
+  activeSection={activeSection}
+  setActiveSection={setActiveSection}
+  gradingSection={gradingSection}
+  setGradingSection={setGradingSection}
+  attendanceSection={attendanceSection}
+  setAttendanceSection={setAttendanceSection}
+  assigmentSection={assigmentSection}
+  setAssigmentSection={setAssigmentSection}
+  announcementSection={announcementSection}
+  setAnnouncementSection={setAnnouncementSection}
+  scheduleSection={scheduleSection}                     
+  setScheduleSection={setScheduleSection}               
+  onLogout={handleLogout}
+/>
+
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <DashboardHeader setSidebarOpen={setSidebarOpen} />
@@ -85,6 +90,7 @@ export default function Main() {
           {activeSection === 'attendance' && <Attendance defaultSection={attendanceSection} />}
           {activeSection === 'assignments' && <Assignments defaultSection={assigmentSection} />}
           {activeSection === 'announcements' && <Announcements defaultSection={announcementSection} />}
+           {activeSection === 'schedule' && <Schedule defaultSection={scheduleSection} />}
         </main>
       </div>
     </div>

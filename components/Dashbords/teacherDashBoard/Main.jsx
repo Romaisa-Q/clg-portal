@@ -1,14 +1,4 @@
 // components/TeacherDashboard/Main.jsx
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter
-} from "../ui/dialog";
-import { Button } from "@/components/ui/button";
 import { useState, useEffect } from 'react';
 import Sidebar from './Layout/Sidebar';
 import Overview from './Overview/Oveview';

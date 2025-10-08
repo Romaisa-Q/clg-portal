@@ -2,11 +2,11 @@ import { useState } from 'react';
 import {
   Plus, Search, Filter, Users, MapPin, Clock, Eye, Edit, Trash2
 } from 'lucide-react';
-import { COLLEGE_COLORS } from '../../constants/colors';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
-import { Button } from '../../ui/button';
-import { Input } from '../../ui/input';
-import { Badge } from '../../ui/badge';
+import { COLLEGE_COLORS } from '../../../constants/colors';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
+import { Button } from '../../../ui/button';
+import { Input } from '../../../ui/input';
+import { Badge } from '../../../ui/badge';
 
 const initialClasses = [
   {

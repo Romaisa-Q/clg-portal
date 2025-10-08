@@ -1,6 +1,6 @@
-import { COLLEGE_COLORS } from '../../constants/colors.js';
-import { scheduleData, days } from '../../constants/scheduleData.js';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { COLLEGE_COLORS } from '../../../constants/colors.js';
+import { scheduleData, days } from '../../../constants/scheduleData.js';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card.jsx';
 
 const timeSlots = [
   '8:00 AM',

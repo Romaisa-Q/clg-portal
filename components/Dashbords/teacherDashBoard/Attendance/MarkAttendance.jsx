@@ -9,13 +9,13 @@ import {
   CheckSquare,
   Square
 } from 'lucide-react';
-import { COLLEGE_COLORS } from '../../constants/colors.js';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
-import { Button } from '../../ui/button';
-import { Input } from '../../ui/input';
-import { Badge } from '../../ui/badge';
-import { Checkbox } from '../../ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
+import { COLLEGE_COLORS } from '../../../constants/colors.js';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card.jsx';
+import { Button } from '../../../ui/button.jsx';
+import { Input } from '../../../ui/input.jsx';
+import { Badge } from '../../../ui/badge.jsx';
+import { Checkbox } from '../../../ui/checkbox.jsx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/select.jsx';
 import { toast } from 'sonner';
 
 // Static student data - no API dependency
@@ -115,7 +115,7 @@ export default function Attendance() {
         return student;
       })
     );
-    toast.success(checkAll ? 'All filtered students marked present' : 'All filtered students marked absent');
+    alert(checkAll ? 'All filtered students marked present' : 'All filtered students marked absent');
   };
 
   // Handle export
@@ -123,7 +123,7 @@ export default function Attendance() {
     const csvContent = generateCSV(filteredStudents);
     const filename = `attendance_${new Date().toISOString().split('T')[0]}.csv`;
     downloadCSV(csvContent, filename);
-    toast.success(`Attendance data exported as ${filename}`);
+    alert(`Attendance data exported as ${filename}`);
   };
 
   // Save attendance data
@@ -135,7 +135,8 @@ export default function Attendance() {
         name: student.name,
         department: student.department,
         semester: student.semester,
-        present: student.present
+        present: student.present,
+     
       }))
     };
     
@@ -148,7 +149,7 @@ export default function Attendance() {
     // Also sync with reports system immediately
     syncToReportsSystem(attendanceRecord);
     
-    toast.success('Attendance saved successfully and synced with reports!');
+    alert('Attendance saved successfully and synced with reports!');
   };
 
   // Function to sync daily attendance with reports system
@@ -236,21 +237,20 @@ export default function Attendance() {
             Mark student attendance with simple checkboxes - {new Date().toLocaleDateString()}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ">
           <Button 
-            variant="neutral"
-            className="flex items-center gap-2"
+          variant="outline"
+            className="flex items-center gap-2  border-gray-100 rounded-md "
             onClick={handleSaveAttendance}
           >
             <CheckCircle className="w-4 h-4" />
             Save Attendance
           </Button>
-          <Button 
-            variant="neutral"
-            className="flex items-center gap-2"
-            onClick={handleExport}
-            disabled={filteredStudents.length === 0}
-          >
+         <Button 
+  variant="outline"
+  className="flex items-center gap-2 rounded-md border-gray-100"
+  onClick={handleExport}
+  disabled={filteredStudents.length === 0}>
             <Download className="w-4 h-4" />
             Export CSV
           </Button>
@@ -343,7 +343,7 @@ export default function Attendance() {
         </div>
         <div className="flex items-center gap-2">
           <Button 
-            variant="neutral"
+            variant="outline"
             size="sm"
             onClick={() => handleCheckAll(true)}
             className="flex items-center gap-2"
@@ -352,7 +352,7 @@ export default function Attendance() {
             Mark All Present
           </Button>
           <Button 
-            variant="neutral"
+            variant="outline"
             size="sm"
             onClick={() => handleCheckAll(false)}
             className="flex items-center gap-2"

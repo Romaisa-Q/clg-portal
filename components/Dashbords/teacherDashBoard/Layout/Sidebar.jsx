@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { 
   BookOpen, Calendar, Users, FileText, BarChart3, ClipboardCheck, LogOut, X, ChevronDown 
 } from 'lucide-react';
-import { COLLEGE_COLORS } from '../../constants/colors';
+import { COLLEGE_COLORS } from '../../../constants/colors';
 
 const sidebarItems = [
   { key: 'overview', label: 'Overview', icon: BarChart3 },

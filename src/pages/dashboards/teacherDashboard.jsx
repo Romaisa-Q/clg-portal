@@ -1,4 +1,4 @@
-import Main from '../../../components/teacherDashBoard/Main';
+import Main from '../../../components/Dashbords/teacherDashBoard/Main';
 
 export default function TeacherDashboardPage() {
   return <Main />;

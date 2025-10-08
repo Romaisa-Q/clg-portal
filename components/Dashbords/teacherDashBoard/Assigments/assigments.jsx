@@ -19,17 +19,17 @@ import {
   XCircle,
   Upload
 } from 'lucide-react';
-import { COLLEGE_COLORS } from '../../constants/colors.js';
-import { scheduleData } from '../../constants/scheduleData.js';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
-import { Button } from '../../ui/button';
-import { Badge } from '../../ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
-import { Input } from '../../ui/input';
-import { Textarea } from '../../ui/textarea';
-import { Label } from '../../ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
+import { COLLEGE_COLORS } from '../../../constants/colors.js';
+import { scheduleData } from '../../../constants/scheduleData.js';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card.jsx';
+import { Button } from '../../../ui/button.jsx';
+import { Badge } from '../../../ui/badge.jsx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/select.jsx';
+import { Input } from '../../../ui/input.jsx';
+import { Textarea } from '../../../ui/textarea.tsx';
+import { Label } from '../../../ui/label.jsx';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../ui/dialog.jsx';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../ui/tabs.jsx';
 import { toast } from 'sonner';
 
 // Get teacher's classes from schedule data

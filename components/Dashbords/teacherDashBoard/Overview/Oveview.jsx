@@ -1,6 +1,6 @@
 import { BookOpen, Users, FileText, Calendar } from 'lucide-react';
-import { COLLEGE_COLORS } from '../../constants/colors';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { COLLEGE_COLORS } from '../../../constants/colors';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 
 export default function Overview() {
   const statsData = [

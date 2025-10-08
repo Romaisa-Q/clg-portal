@@ -24,15 +24,15 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter
-} from "../../ui/dialog";
-import { COLLEGE_COLORS } from '../../constants/colors.js';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
-import { Button } from '../../ui/button';
-import { Badge } from '../../ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
-import { Input } from '../../ui/input';
-import { Textarea } from '../../ui/textarea';
-import { Label } from '../../ui/label';
+} from "../../../ui/dialog";
+import { COLLEGE_COLORS } from '../../../constants/colors.js';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
+import { Button } from '../../../ui/button';
+import { Badge } from '../../../ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/select';
+import { Input } from '../../../ui/input';
+import { Textarea } from '../../../ui/textarea';
+import { Label } from '../../../ui/label';
 import { toast } from 'sonner';
 
 // Mock data for teacher's classes

@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Search, Filter, Eye } from 'lucide-react';
-import { COLLEGE_COLORS } from '../../constants/colors';
+import { COLLEGE_COLORS } from '../../../constants/colors';
 
 const assignmentsData = [
   {

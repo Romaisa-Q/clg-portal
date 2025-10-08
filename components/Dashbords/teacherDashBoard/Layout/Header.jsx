@@ -1,5 +1,5 @@
 import { Menu, Bell, Search } from 'lucide-react';
-import { COLLEGE_COLORS } from '../../constants/colors';
+import { COLLEGE_COLORS } from '../../../constants/colors';
 // import { Import } from 'lucide-react';
 export default function DashboardHeader({ setSidebarOpen }) {
   return (

@@ -10,11 +10,11 @@ import {
   Clock,
   Table
 } from 'lucide-react';
-import { COLLEGE_COLORS } from '../../../constants/colors.js';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card.jsx';
-import { Button } from '../../../ui/button.jsx';
-import { Badge } from '../../../ui/badge.jsx';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/select.jsx';
+import { COLLEGE_COLORS } from '../../../../constants/colors.js';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../ui/card.jsx';
+import { Button } from '../../../../ui/button.jsx';
+import { Badge } from '../../../../ui/badge.jsx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../ui/select.jsx';
 
 
 import { toast } from 'sonner';

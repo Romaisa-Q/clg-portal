@@ -9,11 +9,11 @@ import {
   Eye,
   FileText
 } from 'lucide-react';
-import { COLLEGE_COLORS } from '../../../constants/colors.js';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
-import { Button } from '../../../ui/button';
-import { Badge } from '../../../ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/select';
+import { COLLEGE_COLORS } from '../../../../constants/colors.js';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../ui/card.jsx';
+import { Button } from '../../../../ui/button.jsx';
+import { Badge } from '../../../../ui/badge.jsx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../ui/select.jsx';
 import { toast } from 'sonner';
 
 // Helper function to get all attendance data from daily records

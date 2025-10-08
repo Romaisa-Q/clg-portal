@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Sidebar } from "./Layout/Sidebar";
 import { DashboardHeader } from "./Layout/Header";
+import Dashboard from "./dashboard/dashboard"; // import karo yahan
 
 export default function Main() {
   const router = useRouter();
@@ -53,11 +54,13 @@ export default function Main() {
         <DashboardHeader setSidebarOpen={setIsSidebarOpen} />
 
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {/* Placeholder for future student sections */}
-          <div className="text-center mt-20 text-gray-600">
-            <h2 className="text-xl font-semibold">Student Dashboard</h2>
-            <p>Select a section from the sidebar to begin.</p>
-          </div>
+          {activeSection === "dashboard" && <Dashboard />}
+          {activeSection !== "dashboard" && (
+            <div className="text-center mt-20 text-gray-600">
+              <h2 className="text-xl font-semibold">Section under development</h2>
+              <p>Select a different item from the sidebar.</p>
+            </div>
+          )}
         </main>
       </div>
     </div>

@@ -21,7 +21,6 @@ export default function Main() {
 
   const handleLogout = () => {
     try {
-      localStorage.clear();
       sessionStorage.clear();
       router.back();
     } catch (error) {

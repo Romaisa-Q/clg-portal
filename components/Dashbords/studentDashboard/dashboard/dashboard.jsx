@@ -48,7 +48,13 @@ const subjectAttendanceData = [
   { subject: "English", present: 26, absent: 4, total: 30 }
 ];
 
+// ✅ Safe LocalStorage Access Functions
 const getAnnouncements = () => {
+  if (typeof window === "undefined") {
+    // Build ke waqt localStorage unavailable hota hai
+    return [];
+  }
+
   const stored = localStorage.getItem("teacher_announcements");
   return stored
     ? JSON.parse(stored)
@@ -87,6 +93,10 @@ const getAnnouncements = () => {
 };
 
 const getPendingAssignments = () => {
+  if (typeof window === "undefined") {
+    return 0; // server build time me safe fallback
+  }
+
   const stored = localStorage.getItem("teacher_assignments");
   const assignments = stored ? JSON.parse(stored) : [];
   return assignments.filter((assignment) => {
@@ -95,6 +105,7 @@ const getPendingAssignments = () => {
     return dueDate > now;
   }).length;
 };
+
 
 const formatTimeAgo = (dateStr) => {
   const date = new Date(dateStr);

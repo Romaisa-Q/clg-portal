@@ -1,17 +1,8 @@
 "use client";
 import { useState } from "react";
 import {
-  Bell,
-  User,
-  Search,
-  Calendar,
-  TrendingUp,
-  BarChart3,
-  FileText,
-  AlertCircle,
-  GraduationCap,
-  Clock,
-  ChevronRight
+  Bell,User,Search,Calendar,TrendingUp,BarChart3,FileText,AlertCircle,
+  GraduationCap,Clock,ChevronRight
 } from "lucide-react";
 import {
   BarChart,
@@ -28,7 +19,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../../ui/card";
 import { Button } from "../../../ui/button";
 import { Badge } from "../../../ui/badge";
 import { Input } from "../../../ui/input";
-
 /* --- Local helper data/functions (same logic as tumhari snippets) --- */
 const studentData = {
   name: "Ahmed Ali",
@@ -50,61 +40,70 @@ const subjectAttendanceData = [
 
 // ✅ Safe LocalStorage Access Functions
 const getAnnouncements = () => {
-  if (typeof window === "undefined") {
-    // Build ke waqt localStorage unavailable hota hai
-    return [];
-  }
-
-  const stored = localStorage.getItem("teacher_announcements");
-  return stored
-    ? JSON.parse(stored)
-    : [
-        {
-          id: "1",
-          title: "Mid-term Exam Schedule Released",
-          content:
-            "The mid-term examination schedule for all courses has been released. Please check your respective subject pages for detailed timing.",
-          type: "urgent",
-          createdBy: "Academic Office",
-          createdDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          targetAudience: "all"
-        },
-        {
-          id: "2",
-          title: "Library Closure Notice",
-          content:
-            "The central library will remain closed on December 15th for maintenance work. Online resources will remain available.",
-          type: "general",
-          createdBy: "Library Staff",
-          createdDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          targetAudience: "all"
-        },
-        {
-          id: "3",
-          title: "New Assignment: Data Structures",
-          content:
-            "A new assignment on Binary Trees has been posted in the Computer Science portal. Submission deadline: December 20th.",
-          type: "academic",
-          createdBy: "Prof. Ahmed Khan",
-          createdDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          targetAudience: "cs"
-        }
-      ];
+  return [
+    {
+      id: "1",
+      title: "Mid-term Exam Schedule Released",
+      content:
+        "The mid-term examination schedule for all courses has been released. Please check your respective subject pages for detailed timing.",
+      type: "urgent",
+      createdBy: "Academic Office",
+      createdDate: "2025-10-10T08:00:00Z",
+      targetAudience: "all",
+    },
+    {
+      id: "2",
+      title: "Library Closure Notice",
+      content:
+        "The central library will remain closed on December 15th for maintenance work. Online resources will remain available.",
+      type: "general",
+      createdBy: "Library Staff",
+      createdDate: "2025-10-09T09:00:00Z",
+      targetAudience: "all",
+    },
+    {
+      id: "3",
+      title: "New Assignment: Data Structures",
+      content:
+        "A new assignment on Binary Trees has been posted in the Computer Science portal. Submission deadline: December 20th.",
+      type: "academic",
+      createdBy: "Prof. Ahmed Khan",
+      createdDate: "2025-10-08T10:00:00Z",
+      targetAudience: "cs",
+    },
+  ];
 };
-
 const getPendingAssignments = () => {
-  if (typeof window === "undefined") {
-    return 0; // server build time me safe fallback
-  }
+  // Static data (sirf temporary frontend ke liye)
+  const assignments = [
+    {
+      id: "1",
+      title: "Database Systems Project",
+      dueDate: "2025-10-20T23:59:00Z",
+    },
+    {
+      id: "2",
+      title: "Web Development Quiz",
+      dueDate: "2025-10-05T23:59:00Z", // already passed
+    },
+    {
+      id: "3",
+      title: "AI Research Report",
+      dueDate: "2025-10-18T23:59:00Z",
+    },
+  ];
 
-  const stored = localStorage.getItem("teacher_assignments");
-  const assignments = stored ? JSON.parse(stored) : [];
-  return assignments.filter((assignment) => {
+  // Filter only future (pending) assignments
+  const now = new Date();
+  const pending = assignments.filter((assignment) => {
     const dueDate = new Date(assignment.dueDate);
-    const now = new Date();
     return dueDate > now;
-  }).length;
+  });
+
+  // Return count
+  return pending.length;
 };
+
 
 
 const formatTimeAgo = (dateStr) => {

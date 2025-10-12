@@ -1,10 +1,23 @@
-import { BookOpen, Home, Calendar, GraduationCap, FileText, Bell, BarChart3, User, LogOut, X } from 'lucide-react';
+"use client";
+import { BookOpen, Home, Calendar, GraduationCap, FileText, Bell, BarChart3, User, LogOut, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { COLLEGE_COLORS } from '../../../constants/colors';
+import { useState, useEffect } from 'react';
 
 export function Sidebar({ activeSection, onSectionChange, isOpen, onToggle, onLogout }) {
+  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'attendance', label: 'My Attendance', icon: Calendar },
+    { 
+      id: 'attendance', 
+      label: 'My Attendance', 
+      icon: Calendar,
+      hasSubmenu: true,
+      subItems: [
+        { id: 'view-attendance', label: 'View Attendance' },
+        { id: 'attendance-report', label: 'Attendance Report' }
+      ]
+    },
     { id: 'marks', label: 'Marks & Results', icon: BarChart3 },
     { id: 'lectures', label: 'Lectures & Notes', icon: GraduationCap },
     { id: 'assignments', label: 'Assignments', icon: FileText },
@@ -12,11 +25,25 @@ export function Sidebar({ activeSection, onSectionChange, isOpen, onToggle, onLo
     { id: 'profile', label: 'My Profile', icon: User },
   ];
 
+  // Automatically open attendance submenu when attendance section is active
+  useEffect(() => {
+    if (activeSection === 'view-attendance' || activeSection === 'attendance-report') {
+      setIsAttendanceOpen(true);
+    }
+  }, [activeSection]);
+
   const handleNavClick = (section) => {
     onSectionChange(section);
-    // Close sidebar on mobile after navigation
     if (window.innerWidth < 1024) {
       onToggle();
+    }
+  };
+
+  const handleAttendanceClick = () => {
+    setIsAttendanceOpen(!isAttendanceOpen);
+    // If opening attendance for first time, select default sub-item
+    if (!isAttendanceOpen && !(activeSection === 'view-attendance' || activeSection === 'attendance-report')) {
+      onSectionChange('view-attendance');
     }
   };
 
@@ -72,22 +99,53 @@ export function Sidebar({ activeSection, onSectionChange, isOpen, onToggle, onLo
         <nav className="flex-1 p-3 lg:p-4 space-y-1 lg:space-y-2 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeSection === item.id;
+            const isActive = activeSection === item.id || 
+                            (item.hasSubmenu && item.subItems.some(sub => sub.id === activeSection));
+            const isSubItemActive = item.hasSubmenu && item.subItems.some(sub => sub.id === activeSection);
             
             return (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg text-left transition-all duration-200 ${
-                  isActive 
-                    ? 'bg-white/10 text-white shadow-sm' 
-                    : 'text-white/70 hover:bg-white/5 hover:text-white'
-                }`}
-                style={{ fontFamily: 'Lato, system-ui, sans-serif' }}
-              >
-                <Icon className="w-4 lg:w-5 h-4 lg:h-5 flex-shrink-0" />
-                <span className="font-medium text-sm lg:text-base">{item.label}</span>
-              </button>
+              <div key={item.id}>
+                <button
+                  onClick={() => item.hasSubmenu ? handleAttendanceClick() : handleNavClick(item.id)}
+                  className={`w-full flex items-center justify-between space-x-3 px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg text-left transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-white/10 text-white shadow-sm' 
+                      : 'text-white/70 hover:bg-white/5 hover:text-white'
+                  }`}
+                  style={{ fontFamily: 'Lato, system-ui, sans-serif' }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Icon className="w-4 lg:w-5 h-4 lg:h-5 flex-shrink-0" />
+                    <span className="font-medium text-sm lg:text-base">{item.label}</span>
+                  </div>
+                  
+                  {item.hasSubmenu && (
+                    isAttendanceOpen ? 
+                      <ChevronDown className="w-4 h-4" /> : 
+                      <ChevronRight className="w-4 h-4" />
+                  )}
+                </button>
+
+                {/* Sub-menu for Attendance */}
+                {item.hasSubmenu && isAttendanceOpen && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {item.subItems.map((subItem) => (
+                      <button
+                        key={subItem.id}
+                        onClick={() => handleNavClick(subItem.id)}
+                        className={`w-full flex items-center space-x-3 px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg text-left transition-all duration-200 ${
+                          activeSection === subItem.id
+                            ? 'bg-white/20 text-white shadow-sm' 
+                            : 'text-white/60 hover:bg-white/5 hover:text-white'
+                        }`}
+                        style={{ fontFamily: 'Lato, system-ui, sans-serif' }}
+                      >
+                        <span className="font-medium text-xs lg:text-sm">• {subItem.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

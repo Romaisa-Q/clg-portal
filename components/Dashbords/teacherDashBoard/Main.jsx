@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import Grading from './Grading/Grading';
 import ClassList from './MyClasses/ClassList';
 import Attendance from './Attendance/Attendance';
-import Assignments from './Assigments/assigments';
+import Assignments from './Assigments&Lectures/AssignmentsMain';
 import Announcements from './Annoucements/Annoucements';
 import Schedule from "./shedule/shedule";
 

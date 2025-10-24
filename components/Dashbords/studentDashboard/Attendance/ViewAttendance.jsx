@@ -10,7 +10,7 @@ export default function ViewAttendance() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-normal">View Attendance</h1>
-          <p className="text-green-700 mt-1">Detailed view of your subject-wise attendance</p>
+          <p className=" mt-1">Detailed view of your subject-wise attendance</p>
         </div>
       </div>
 

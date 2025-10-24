@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { 
   Plus, 
   Calendar, 
@@ -35,6 +36,9 @@ import { Textarea } from '../../../ui/textarea';
 import { Label } from '../../../ui/label';
 import { toast } from 'sonner';
 
+// Backend API base URL
+const API_BASE = 'http://localhost:5000/api/announcements';
+
 // Mock data for teacher's classes
 const teacherClasses = [
   { id: 'cs_3a', name: 'Computer Science 3A', subject: 'Database Systems', students: 30 },
@@ -42,6 +46,7 @@ const teacherClasses = [
   { id: 'cs_4a', name: 'Computer Science 4A', subject: 'Software Engineering', students: 25 },
   { id: 'se_2a', name: 'Software Engineering 2A', subject: 'Data Structures', students: 32 },
   { id: 'it_3a', name: 'Information Technology 3A', subject: 'Web Development', students: 27 },
+  { id: 'bscs-8a', name: 'BSCS-8A', subject: 'Final Year Project', students: 42 },
 ];
 
 // Priority options
@@ -51,23 +56,9 @@ const priorityOptions = [
   { value: 'urgent', label: 'Urgent', color: 'bg-red-100 text-red-800', icon: AlertTriangle }
 ];
 
-// Helper functions for localStorage
-const getAnnouncements = () => {
-  const stored = localStorage.getItem('teacher_announcements');
-  return stored ? JSON.parse(stored) : [];
-};
-
-const saveAnnouncements = (announcements) => {
-  localStorage.setItem('teacher_announcements', JSON.stringify(announcements));
-};
-
-// Generate unique ID
-const generateId = () => {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-};
-
 // Format date helper
 const formatDate = (dateStr) => {
+  if (!dateStr) return '';
   const date = new Date(dateStr);
   return date.toLocaleDateString('en-US', { 
     year: 'numeric', 
@@ -78,6 +69,7 @@ const formatDate = (dateStr) => {
 
 // Format time helper
 const formatDateTime = (dateStr) => {
+  if (!dateStr) return '';
   const date = new Date(dateStr);
   return date.toLocaleDateString('en-US', { 
     year: 'numeric', 
@@ -123,12 +115,53 @@ export default function Announcements() {
     type: 'general'
   });
 
+  // Map backend response to frontend format
+  const mapAnnouncementFromBackend = (item) => {
+    const classData = item.classId === 'all' 
+      ? { name: 'All Classes', subject: 'All Subjects', students: teacherClasses.reduce((total, cls) => total + cls.students, 0) }
+      : teacherClasses.find(cls => cls.id === item.classId) || { name: item.className || 'Unknown', subject: 'Unknown', students: item.totalStudents || 0 };
+
+    return {
+      id: item._id,
+      title: item.title || 'Untitled',
+      message: item.content || item.message || '',
+      classId: item.classId || 'all',
+      className: classData.name,
+      subject: classData.subject,
+      priority: item.priority || 'normal',
+      type: item.type || 'general',
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      createdBy: item.author || 'Teacher',
+      totalStudents: classData.students,
+      views: item.readBy ? item.readBy.length : 0,
+      readBy: item.readBy || []
+    };
+  };
+
+  // Load announcements from backend
+  const loadAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(API_BASE, {
+        headers: { 'Cache-Control': 'no-cache' },
+        params: { _t: Date.now() }
+      });
+      
+      console.log('✅ Loaded announcements:', response.data);
+      const mapped = response.data.map(mapAnnouncementFromBackend);
+      setAnnouncements(mapped);
+      setFilteredAnnouncements(mapped);
+    } catch (error) {
+      console.error('❌ Failed to load announcements:', error);
+      toast.error('Failed to load announcements from server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Load announcements from localStorage
-    const loadedAnnouncements = getAnnouncements();
-    setAnnouncements(loadedAnnouncements);
-    setFilteredAnnouncements(loadedAnnouncements);
-    setLoading(false);
+    loadAnnouncements();
   }, []);
 
   useEffect(() => {
@@ -159,7 +192,7 @@ export default function Announcements() {
     setFilteredAnnouncements(filtered);
   }, [announcements, selectedClass, priorityFilter, searchTerm]);
 
-  const handleCreateAnnouncement = (e) => {
+  const handleCreateAnnouncement = async (e) => {
     e.preventDefault();
     
     if (!formData.title || !formData.message || !formData.classId) {
@@ -168,48 +201,59 @@ export default function Announcements() {
     }
 
     const selectedClassData = formData.classId === 'all' 
-      ? { name: 'All Classes', subject: 'All Subjects' }
+      ? { name: 'All Classes', subject: 'All Subjects', students: teacherClasses.reduce((total, cls) => total + cls.students, 0) }
       : teacherClasses.find(cls => cls.id === formData.classId);
 
-    const newAnnouncement = {
-      id: generateId(),
-      title: formData.title,
-      message: formData.message,
-      classId: formData.classId,
-      className: selectedClassData.name,
-      subject: selectedClassData.subject,
-      priority: formData.priority,
-      type: formData.type,
-      createdAt: new Date().toISOString(),
-      createdBy: 'Prof. Sarah Ahmed',
-      totalStudents: formData.classId === 'all' 
-        ? teacherClasses.reduce((total, cls) => total + cls.students, 0)
-        : selectedClassData.students,
-      views: 0
-    };
+    try {
+      // Prepare data for backend
+      const announcementData = {
+        title: formData.title,
+        content: formData.message,
+        author: 'Prof. Sarah Ahmed', // Replace with actual logged-in teacher name
+        priority: formData.priority,
+        type: formData.type,
+        classId: formData.classId,
+        className: selectedClassData.name,
+        totalStudents: selectedClassData.students
+      };
 
-    const updatedAnnouncements = [...announcements, newAnnouncement];
-    setAnnouncements(updatedAnnouncements);
-    saveAnnouncements(updatedAnnouncements);
+      console.log('📤 Creating announcement:', announcementData);
+      const response = await axios.post(API_BASE, announcementData);
+      console.log('✅ Created announcement:', response.data);
 
-    // Reset form
-    setFormData({
-      title: '',
-      message: '',
-      classId: '',
-      priority: 'normal',
-      type: 'general'
-    });
+      // Reload announcements from server
+      await loadAnnouncements();
 
-    setShowCreateDialog(false);
-    toast.success('Announcement created successfully!');
+      // Reset form
+      setFormData({
+        title: '',
+        message: '',
+        classId: '',
+        priority: 'normal',
+        type: 'general'
+      });
+
+      setShowCreateDialog(false);
+      toast.success('Announcement created successfully!');
+    } catch (error) {
+      console.error('❌ Failed to create announcement:', error);
+      toast.error('Failed to create announcement. Please try again.');
+    }
   };
 
-  const handleDeleteAnnouncement = (announcementId) => {
-    const updatedAnnouncements = announcements.filter(announcement => announcement.id !== announcementId);
-    setAnnouncements(updatedAnnouncements);
-    saveAnnouncements(updatedAnnouncements);
-    toast.success('Announcement deleted successfully!');
+  const handleDeleteAnnouncement = async (announcementId) => {
+    try {
+      console.log('🗑️ Deleting announcement:', announcementId);
+      await axios.delete(`${API_BASE}/${announcementId}`);
+      console.log('✅ Deleted announcement');
+
+      // Reload announcements from server
+      await loadAnnouncements();
+      toast.success('Announcement deleted successfully!');
+    } catch (error) {
+      console.error('❌ Failed to delete announcement:', error);
+      toast.error('Failed to delete announcement. Please try again.');
+    }
   };
 
   const handleViewAnnouncement = (announcement) => {
@@ -229,7 +273,7 @@ export default function Announcements() {
     setShowEditDialog(true);
   };
 
-  const handleUpdateAnnouncement = (e) => {
+  const handleUpdateAnnouncement = async (e) => {
     e.preventDefault();
     
     if (!editFormData.title || !editFormData.message || !editFormData.classId) {
@@ -238,38 +282,43 @@ export default function Announcements() {
     }
 
     const selectedClassData = editFormData.classId === 'all' 
-      ? { name: 'All Classes', subject: 'All Subjects' }
+      ? { name: 'All Classes', subject: 'All Subjects', students: teacherClasses.reduce((total, cls) => total + cls.students, 0) }
       : teacherClasses.find(cls => cls.id === editFormData.classId);
 
-    const updatedAnnouncement = {
-      ...selectedAnnouncement,
-      title: editFormData.title,
-      message: editFormData.message,
-      classId: editFormData.classId,
-      className: selectedClassData.name,
-      subject: selectedClassData.subject,
-      priority: editFormData.priority,
-      type: editFormData.type,
-      updatedAt: new Date().toISOString()
-    };
+    try {
+      // Prepare update data
+      const updateData = {
+        title: editFormData.title,
+        content: editFormData.message,
+        priority: editFormData.priority,
+        type: editFormData.type,
+        classId: editFormData.classId,
+        className: selectedClassData.name,
+        totalStudents: selectedClassData.students
+      };
 
-    const updatedAnnouncements = announcements.map(announcement => 
-      announcement.id === selectedAnnouncement.id ? updatedAnnouncement : announcement
-    );
-    setAnnouncements(updatedAnnouncements);
-    saveAnnouncements(updatedAnnouncements);
+      console.log('📝 Updating announcement:', selectedAnnouncement.id, updateData);
+      const response = await axios.patch(`${API_BASE}/${selectedAnnouncement.id}`, updateData);
+      console.log('✅ Updated announcement:', response.data);
 
-    // Reset form
-    setEditFormData({
-      title: '',
-      message: '',
-      classId: '',
-      priority: 'normal',
-      type: 'general'
-    });
+      // Reload announcements from server
+      await loadAnnouncements();
 
-    setShowEditDialog(false);
-    toast.success('Announcement updated successfully!');
+      // Reset form
+      setEditFormData({
+        title: '',
+        message: '',
+        classId: '',
+        priority: 'normal',
+        type: 'general'
+      });
+
+      setShowEditDialog(false);
+      toast.success('Announcement updated successfully!');
+    } catch (error) {
+      console.error('❌ Failed to update announcement:', error);
+      toast.error('Failed to update announcement. Please try again.');
+    }
   };
 
   const getClassOptions = () => {
@@ -323,128 +372,127 @@ export default function Announcements() {
               Create Announcement
             </Button>
           </DialogTrigger>
-        <DialogContent className="max-w-2xl">
-  <DialogHeader>
-    <DialogTitle>Create New Announcement</DialogTitle>
-  </DialogHeader>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Create New Announcement</DialogTitle>
+            </DialogHeader>
 
-  <form onSubmit={handleCreateAnnouncement} className="space-y-4">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">Announcement Title *</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Enter announcement title"
-          required
-          className="border border-gray-300 rounded-md"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="class">Select Class *</Label>
-        <Select
-          value={formData.classId}
-          onValueChange={(value) => setFormData({ ...formData, classId: value })}
-          required
-        >
-          <SelectTrigger className="border border-gray-300 rounded-md">
-            <SelectValue placeholder="Choose class" />
-          </SelectTrigger>
-          <SelectContent>
-            {getClassOptions().map((cls) => (
-              <SelectItem key={cls.id} value={cls.id}>
-                <div className="flex flex-col">
-                  <span>{cls.name}</span>
-                  <span className="text-xs text-gray-500">{cls.subject}</span>
+            <form onSubmit={handleCreateAnnouncement} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Announcement Title *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Enter announcement title"
+                    required
+                    className="border border-gray-300 rounded-md"
+                  />
                 </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label htmlFor="priority">Priority Level</Label>
-        <Select
-          value={formData.priority}
-          onValueChange={(value) => setFormData({ ...formData, priority: value })}
-        >
-          <SelectTrigger className="border border-gray-300 rounded-md">
-            <SelectValue placeholder="Select priority" />
-          </SelectTrigger>
-          <SelectContent>
-            {priorityOptions.map((priority) => {
-              const IconComponent = priority.icon;
-              return (
-                <SelectItem key={priority.value} value={priority.value}>
-                  <div className="flex items-center gap-2">
-                    <IconComponent className="w-4 h-4" />
-                    <span>{priority.label}</span>
-                  </div>
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
-      </div>
+                <div className="space-y-2">
+                  <Label htmlFor="class">Select Class *</Label>
+                  <Select
+                    value={formData.classId}
+                    onValueChange={(value) => setFormData({ ...formData, classId: value })}
+                    required
+                  >
+                    <SelectTrigger className="border border-gray-300 rounded-md">
+                      <SelectValue placeholder="Choose class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getClassOptions().map((cls) => (
+                        <SelectItem key={cls.id} value={cls.id}>
+                          <div className="flex flex-col">
+                            <span>{cls.name}</span>
+                            <span className="text-xs text-gray-500">{cls.subject}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="type">Announcement Type</Label>
-        <Select
-          value={formData.type}
-          onValueChange={(value) => setFormData({ ...formData, type: value })}
-        >
-          <SelectTrigger className="border border-gray-300 rounded-md">
-            <SelectValue placeholder="Select type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="general">General</SelectItem>
-            <SelectItem value="quiz">Quiz/Test</SelectItem>
-            <SelectItem value="assignment">Assignment</SelectItem>
-            <SelectItem value="schedule">Schedule Change</SelectItem>
-            <SelectItem value="event">Event</SelectItem>
-            <SelectItem value="holiday">Holiday/Break</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority Level</Label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                  >
+                    <SelectTrigger className="border border-gray-300 rounded-md">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {priorityOptions.map((priority) => {
+                        const IconComponent = priority.icon;
+                        return (
+                          <SelectItem key={priority.value} value={priority.value}>
+                            <div className="flex items-center gap-2">
+                              <IconComponent className="w-4 h-4" />
+                              <span>{priority.label}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-    <div className="space-y-2">
-      <Label htmlFor="message">Message *</Label>
-      <Textarea
-        id="message"
-        value={formData.message}
-        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-        placeholder="Enter your announcement message..."
-        rows={4}
-        required
-        className="border border-gray-300 rounded-md"
-      />
-    </div>
+                <div className="space-y-2">
+                  <Label htmlFor="type">Announcement Type</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(value) => setFormData({ ...formData, type: value })}
+                  >
+                    <SelectTrigger className="border border-gray-300 rounded-md">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">General</SelectItem>
+                      <SelectItem value="quiz">Quiz/Test</SelectItem>
+                      <SelectItem value="assignment">Assignment</SelectItem>
+                      <SelectItem value="schedule">Schedule Change</SelectItem>
+                      <SelectItem value="event">Event</SelectItem>
+                      <SelectItem value="holiday">Holiday/Break</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-    <div className="flex justify-end space-x-2 pt-4">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => setShowCreateDialog(false)}
-      >
-        Cancel
-      </Button>
-      <Button
-        type="submit"
-        style={{ backgroundColor: COLLEGE_COLORS.lightGreen }}
-        className="text-amber-50"
-      >
-        Create Announcement
-      </Button>
-    </div>
-  </form>
-</DialogContent>
+              <div className="space-y-2">
+                <Label htmlFor="message">Message *</Label>
+                <Textarea
+                  id="message"
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  placeholder="Enter your announcement message..."
+                  rows={4}
+                  required
+                  className="border border-gray-300 rounded-md"
+                />
+              </div>
 
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCreateDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  style={{ backgroundColor: COLLEGE_COLORS.lightGreen }}
+                  className="text-amber-50"
+                >
+                  Create Announcement
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
         </Dialog>
       </div>
 

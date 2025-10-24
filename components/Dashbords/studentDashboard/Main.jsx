@@ -8,7 +8,7 @@ import { DashboardHeader } from "./Layout/Header";
 
 // Pages / Sections
 import Dashboard from "./dashboard/dashboard";
-import Announcements from "./Annoucements/annoucements";
+import Announcements from "./Annoucements/announcements";
 import ViewAttendance from "./Attendance/ViewAttendance"; // ✅ Separate components
 import AttendanceReport from "./Attendance/AttendanceReport"; // ✅ Separate components
 

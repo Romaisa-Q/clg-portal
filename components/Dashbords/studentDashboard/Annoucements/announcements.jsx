@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+// StudentAnnouncements.jsx
+import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { 
   Bell, 
   Calendar, 
@@ -17,130 +19,61 @@ import {
   X
 } from 'lucide-react';
 import { COLLEGE_COLORS } from '../../../constants/colors.js';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
+import { Card, CardContent } from '../../../ui/card';
 import { Badge } from '../../../ui/badge';
 import { Input } from '../../../ui/input';
 import { Button } from '../../../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../ui/dialog';
 
-// Student data (should match StudentDashboard)
+// Backend base (change if your server uses another host/port)
+const API_BASE = 'http://localhost:5000/api/announcements';
+
+// Student data (will be used to mark read)
 const studentData = {
   name: 'Ahmed Ali',
-  rollNo: 'CS2021001',
-  semester: 6,
+  rollNo: 'CS2021001',     // used as studentId for read tracking
+  semester: 8,
   department: 'Computer Science',
   section: 'A',
-  classId: 'cs_6a' // CS 6th semester section A
+  classId: 'bscs-8a'  // CHANGED: match karna chahiye backend ke "BSCS-8A" se
 };
 
-const getAnnouncements = () => {
-  return [
-    {
-      id: "1",
-      title: "Mid-term Exam Schedule Released",
-      message:
-        "The mid-term examination schedule for all courses has been released. Please check your respective subject pages for detailed timing.",
-      type: "schedule",
-      priority: "urgent",
-      createdBy: "Academic Office",
-      createdAt: "2025-10-10T08:00:00Z",
-      classId: "all",
-      className: "All Departments",
-      totalStudents: 200,
-    },
-    {
-      id: "2",
-      title: "Library Closure Notice",
-      message:
-        "The central library will remain closed on December 15th for maintenance work. Online resources will remain available.",
-      type: "general",
-      priority: "normal",
-      createdBy: "Library Staff",
-      createdAt: "2025-10-09T09:00:00Z",
-      classId: "all",
-      className: "All Students",
-      totalStudents: 150,
-    },
-    {
-      id: "3",
-      title: "New Assignment: Data Structures",
-      message:
-        "A new assignment on Binary Trees has been posted in the Computer Science portal. Submission deadline: December 20th.",
-      type: "assignment",
-      priority: "important",
-      createdBy: "Prof. Ahmed Khan",
-      createdAt: "2025-10-08T10:00:00Z",
-      classId: "cs_6a",
-      className: "CS 6A",
-      totalStudents: 45,
-    },
-  ];
-};
-
-
-// Format time ago
+// Format helpers
 const formatTimeAgo = (dateStr) => {
+  if (!dateStr) return '';
   const date = new Date(dateStr);
   const now = new Date();
   const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-  
   if (diffInHours < 1) return 'Just now';
   if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-  
   const diffInDays = Math.floor(diffInHours / 24);
   if (diffInDays === 1) return '1 day ago';
   if (diffInDays < 7) return `${diffInDays} days ago`;
-  
   const diffInWeeks = Math.floor(diffInDays / 7);
   if (diffInWeeks === 1) return '1 week ago';
   if (diffInWeeks < 4) return `${diffInWeeks} weeks ago`;
-  
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  });
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
-// Format full date
 const formatDate = (dateStr) => {
+  if (!dateStr) return '';
   const date = new Date(dateStr);
   return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit'
   });
 };
 
-// Get priority info
 const getPriorityInfo = (priority) => {
   const priorities = {
-    urgent: { 
-      label: 'Urgent', 
-      color: 'bg-red-100 text-red-800', 
-      icon: AlertTriangle,
-      borderColor: COLLEGE_COLORS.redAccent 
-    },
-    important: { 
-      label: 'Important', 
-      color: 'bg-yellow-100 text-yellow-800', 
-      icon: AlertTriangle,
-      borderColor: '#F59E0B' 
-    },
-    normal: { 
-      label: 'Normal', 
-      color: 'bg-blue-100 text-blue-800', 
-      icon: Info,
-      borderColor: '#3B82F6' 
-    }
+    urgent: { label: 'Urgent', color: 'bg-red-100 text-red-800', icon: AlertTriangle, borderColor: COLLEGE_COLORS.redAccent },
+    important: { label: 'Important', color: 'bg-yellow-100 text-yellow-800', icon: AlertTriangle, borderColor: '#F59E0B' },
+    normal: { label: 'Normal', color: 'bg-blue-100 text-blue-800', icon: Info, borderColor: '#3B82F6' },
   };
   return priorities[priority] || priorities.normal;
 };
 
-// Get type icon
 const getTypeIcon = (type) => {
   const icons = {
     quiz: FileText,
@@ -162,99 +95,146 @@ export default function StudentAnnouncements() {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    // Load announcements from localStorage
-    const loadAnnouncements = () => {
-      const allAnnouncements = getAnnouncements();
-      
-      // Filter announcements relevant to the student
-      // Show announcements that are either:
-      // 1. For "all" classes
-      // 2. For the student's specific class (cs_6a)
-      const studentAnnouncements = allAnnouncements.filter(announcement => {
-        return announcement.classId === 'all' || announcement.classId === studentData.classId;
-      });
-
-      setAnnouncements(studentAnnouncements);
-      
-      // Get read announcements from localStorage
-      const readAnnouncements = JSON.parse(localStorage.getItem('student_read_announcements') || '[]');
-      const unread = studentAnnouncements.filter(a => !readAnnouncements.includes(a.id)).length;
-      setUnreadCount(unread);
-    };
-
-    loadAnnouncements();
-
-    // Listen for storage events to sync with teacher dashboard
-    const handleStorageChange = () => {
-      loadAnnouncements();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
+  // Map backend item → frontend shape (moved outside component to prevent re-creation)
+  const mapItem = useCallback((item) => {
+    // Normalize classId: if className is "All Classes" or empty, use 'all'
+    let classId = item.classId;
+    if (!classId) {
+      if (item.className === 'All Classes' || !item.className) {
+        classId = 'all';
+      } else {
+        classId = item.className.replace(/\s+/g, '_').toLowerCase();
+      }
+    }
     
-    // Also poll for updates every 5 seconds (for same-window updates)
-    const interval = setInterval(loadAnnouncements, 5000);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
+    return {
+      id: item._id || item.id,
+      title: item.title || 'Untitled',
+      message: item.content || item.message || '',
+      createdBy: item.author || item.createdBy || 'Unknown',
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      priority: item.priority || 'normal',
+      type: item.type || 'general',
+      classId: classId,
+      className: item.className || 'All Classes',
+      totalStudents: item.totalStudents || 0,
+      readBy: Array.isArray(item.readBy) ? item.readBy : []
     };
   }, []);
 
+  const loadAnnouncements = useCallback(async () => {
+    try {
+      // Cache-buster ke sath fetch karo taake 304 na aaye
+      const res = await axios.get(API_BASE, {
+        headers: { 'Cache-Control': 'no-cache' },
+        params: { _t: Date.now() }
+      });
+      console.log('✅ Loaded announcements:', res.data);
+      const mapped = (res.data || []).map(mapItem);
+      console.log('✅ Mapped announcements:', mapped);
+      
+      // Filter for student class - SHOW ALL if classId is 'all' OR matches student's class
+      const studentAnnouncements = mapped.filter(a => {
+        const matches = a.classId === 'all' || a.classId === studentData.classId;
+        console.log(`Checking "${a.title}": classId="${a.classId}", studentClassId="${studentData.classId}", matches=${matches}`);
+        return matches;
+      });
+      
+      console.log('✅ Student announcements after filter:', studentAnnouncements);
+      console.log('📊 Setting announcements state with:', studentAnnouncements.length, 'items');
+      setAnnouncements(studentAnnouncements);
+      
+      // unread count based on backend readBy
+      const unread = studentAnnouncements.filter(a => !a.readBy.includes(studentData.rollNo)).length;
+      setUnreadCount(unread);
+      setError(null);
+    } catch (err) {
+      console.error('❌ Failed to load announcements:', err?.message || err);
+      setError('Failed to load announcements. Please check server.');
+    } finally {
+      setLoading(false);
+    }
+  }, [mapItem]); // Added mapItem dependency
+
+  // initial load only (NO POLLING)
   useEffect(() => {
-    // Filter announcements based on search and filters
+    console.log('🔄 useEffect triggered - running once on mount');
+    setLoading(true);
+    loadAnnouncements();
+  }, []); // Empty dependency array - run only once on mount
+
+  // filtering (search + priority + type)
+  useEffect(() => {
+    console.log('🔍 Filtering effect running. Announcements:', announcements.length);
     let filtered = announcements;
 
-    // Search filter
     if (searchTerm) {
-      filtered = filtered.filter(announcement => 
-        announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        announcement.message.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(a =>
+        (a.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (a.message || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Priority filter
     if (priorityFilter !== 'all') {
-      filtered = filtered.filter(announcement => announcement.priority === priorityFilter);
+      filtered = filtered.filter(a => a.priority === priorityFilter);
     }
 
-    // Type filter
     if (typeFilter !== 'all') {
-      filtered = filtered.filter(announcement => announcement.type === typeFilter);
+      filtered = filtered.filter(a => a.type === typeFilter);
     }
 
-    // Sort by creation date (newest first)
     filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
+    console.log('✅ Filtered announcements:', filtered.length, 'items');
     setFilteredAnnouncements(filtered);
   }, [announcements, searchTerm, priorityFilter, typeFilter]);
 
-  const handleViewAnnouncement = (announcement) => {
+  // mark single announcement as read (backend)
+  const handleViewAnnouncement = async (announcement) => {
     setSelectedAnnouncement(announcement);
     setShowViewDialog(true);
 
-    // Mark as read
-    const readAnnouncements = JSON.parse(localStorage.getItem('student_read_announcements') || '[]');
-    if (!readAnnouncements.includes(announcement.id)) {
-      readAnnouncements.push(announcement.id);
-      localStorage.setItem('student_read_announcements', JSON.stringify(readAnnouncements));
+    const id = announcement.id || announcement._id;
+    // If already read by this student, do nothing
+    if (announcement.readBy && announcement.readBy.includes(studentData.rollNo)) return;
+
+    try {
+      await axios.patch(`${API_BASE}/${id}/read`, { studentId: studentData.rollNo });
+      // optimistic update
+      setAnnouncements(prev => prev.map(a => a.id === announcement.id ? {...a, readBy: [...a.readBy, studentData.rollNo]} : a));
       setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error('Failed to mark as read:', err?.message || err);
+      // still show dialog even if marking failed
     }
   };
 
-  const handleMarkAllRead = () => {
-    const allIds = announcements.map(a => a.id);
-    localStorage.setItem('student_read_announcements', JSON.stringify(allIds));
-    setUnreadCount(0);
+  // mark all as read
+  const handleMarkAllRead = async () => {
+    const toMark = announcements.filter(a => !a.readBy.includes(studentData.rollNo));
+    if (toMark.length === 0) return;
+    try {
+      // send PATCH requests in parallel
+      await Promise.all(
+        toMark.map(a => axios.patch(`${API_BASE}/${a.id}/read`, { studentId: studentData.rollNo }))
+      );
+      // refresh local state
+      setAnnouncements(prev => prev.map(a => ({ ...a, readBy: a.readBy.includes(studentData.rollNo) ? a.readBy : [...a.readBy, studentData.rollNo] })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error('Failed to mark all read:', err?.message || err);
+    }
   };
 
-  const isRead = (announcementId) => {
-    const readAnnouncements = JSON.parse(localStorage.getItem('student_read_announcements') || '[]');
-    return readAnnouncements.includes(announcementId);
+  // helper to check read
+  const isRead = (announcement) => {
+    return Array.isArray(announcement.readBy) && announcement.readBy.includes(studentData.rollNo);
   };
 
-  // Get stats
+  // stats
   const stats = {
     total: announcements.length,
     urgent: announcements.filter(a => a.priority === 'urgent').length,
@@ -262,25 +242,25 @@ export default function StudentAnnouncements() {
     unread: unreadCount
   };
 
+  if (loading) {
+    return <div className="p-6 text-center text-xl" style={{ color: COLLEGE_COLORS.darkGreen }}>Loading announcements... ⏳</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-center text-xl text-red-600">{error}</div>;
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold" style={{ color: COLLEGE_COLORS.darkGreen }}>
-            Announcements
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Stay updated with important notices for {studentData.department} - Semester {studentData.semester}
-          </p>
+          <h1 className="text-2xl font-semibold" style={{ color: COLLEGE_COLORS.darkGreen }}>Announcements</h1>
+          <p className="text-sm text-gray-600 mt-1">Stay updated with important notices for {studentData.department} - Semester {studentData.semester}</p>
         </div>
-        
+
         {unreadCount > 0 && (
-          <Button 
-            variant="outline" 
-            onClick={handleMarkAllRead}
-            className="flex items-center gap-2"
-          >
+          <Button variant="outline" onClick={handleMarkAllRead} className="flex items-center gap-2">
             <Bell className="w-4 h-4" />
             Mark All Read
           </Button>
@@ -294,9 +274,7 @@ export default function StudentAnnouncements() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Announcements</p>
-                <p className="text-2xl font-semibold" style={{ color: COLLEGE_COLORS.darkGreen }}>
-                  {stats.total}
-                </p>
+                <p className="text-2xl font-semibold" style={{ color: COLLEGE_COLORS.darkGreen }}>{stats.total}</p>
               </div>
               <Megaphone className="w-8 h-8 text-gray-400" />
             </div>
@@ -308,9 +286,7 @@ export default function StudentAnnouncements() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Unread</p>
-                <p className="text-2xl font-semibold text-blue-600">
-                  {stats.unread}
-                </p>
+                <p className="text-2xl font-semibold text-blue-600">{stats.unread}</p>
               </div>
               <Bell className="w-8 h-8 text-blue-400" />
             </div>
@@ -322,9 +298,7 @@ export default function StudentAnnouncements() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Important</p>
-                <p className="text-2xl font-semibold text-yellow-600">
-                  {stats.important}
-                </p>
+                <p className="text-2xl font-semibold text-yellow-600">{stats.important}</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-yellow-400" />
             </div>
@@ -336,9 +310,7 @@ export default function StudentAnnouncements() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Urgent</p>
-                <p className="text-2xl font-semibold" style={{ color: COLLEGE_COLORS.redAccent }}>
-                  {stats.urgent}
-                </p>
+                <p className="text-2xl font-semibold" style={{ color: COLLEGE_COLORS.redAccent }}>{stats.urgent}</p>
               </div>
               <AlertTriangle className="w-8 h-8" style={{ color: COLLEGE_COLORS.redAccent }} />
             </div>
@@ -351,15 +323,10 @@ export default function StudentAnnouncements() {
         <div className="flex-1">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input 
-              placeholder="Search announcements..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+            <Input placeholder="Search announcements..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
           </div>
         </div>
-        
+
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="All Priorities" />
@@ -398,23 +365,13 @@ export default function StudentAnnouncements() {
                 {announcements.length === 0 ? 'No announcements yet' : 'No announcements match your filters'}
               </h3>
               <p className="text-gray-600 mb-4">
-                {announcements.length === 0 
-                  ? 'Check back later for important updates and notices'
-                  : 'Try adjusting your filters to see more announcements'
-                }
+                {announcements.length === 0 ? 'Check back later for important updates and notices' : 'Try adjusting your filters to see more announcements'}
               </p>
-              {searchTerm || priorityFilter !== 'all' || typeFilter !== 'all' ? (
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setSearchTerm('');
-                    setPriorityFilter('all');
-                    setTypeFilter('all');
-                  }}
-                >
+              {(searchTerm || priorityFilter !== 'all' || typeFilter !== 'all') && (
+                <Button variant="outline" onClick={() => { setSearchTerm(''); setPriorityFilter('all'); setTypeFilter('all'); }}>
                   Clear Filters
                 </Button>
-              ) : null}
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -422,32 +379,23 @@ export default function StudentAnnouncements() {
             const priorityInfo = getPriorityInfo(announcement.priority);
             const TypeIcon = getTypeIcon(announcement.type);
             const PriorityIcon = priorityInfo.icon;
-            const read = isRead(announcement.id);
+            const read = isRead(announcement);
 
             return (
               <Card 
-                key={announcement.id} 
-                className={`border-0 shadow-sm transition-all hover:shadow-md cursor-pointer ${
-                  !read ? 'bg-blue-50/50' : ''
-                }`}
+                key={announcement.id}
+                className={`border-0 shadow-sm transition-all hover:shadow-md cursor-pointer ${!read ? 'bg-blue-50/50' : ''}`}
                 onClick={() => handleViewAnnouncement(announcement)}
               >
                 <CardContent className="p-5">
                   <div className="flex gap-4">
-                    {/* Left border indicator */}
-                    <div 
-                      className="w-1 rounded-full flex-shrink-0" 
-                      style={{ backgroundColor: priorityInfo.borderColor }}
-                    />
+                    <div className="w-1 rounded-full flex-shrink-0" style={{ backgroundColor: priorityInfo.borderColor }} />
 
-                    {/* Main content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4 mb-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <h3 className="font-semibold text-gray-900">
-                              {announcement.title}
-                            </h3>
+                            <h3 className="font-semibold text-gray-900">{announcement.title}</h3>
                             {!read && (
                               <span className="flex h-2 w-2 relative">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -455,7 +403,7 @@ export default function StudentAnnouncements() {
                               </span>
                             )}
                           </div>
-                          
+
                           <div className="flex items-center gap-2 flex-wrap mb-2">
                             <Badge className={priorityInfo.color}>
                               <PriorityIcon className="w-3 h-3 mr-1" />
@@ -465,15 +413,9 @@ export default function StudentAnnouncements() {
                               <TypeIcon className="w-3 h-3 mr-1" />
                               {announcement.type}
                             </Badge>
-                            {announcement.classId === 'all' ? (
-                              <Badge variant="secondary">
-                                All Classes
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary">
-                                {announcement.className}
-                              </Badge>
-                            )}
+                            <Badge variant="secondary">
+                              {announcement.className}
+                            </Badge>
                           </div>
                         </div>
 
@@ -482,9 +424,7 @@ export default function StudentAnnouncements() {
                         </Button>
                       </div>
 
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {announcement.message}
-                      </p>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{announcement.message}</p>
 
                       <div className="flex items-center gap-4 text-xs text-gray-500">
                         <div className="flex items-center gap-1">
@@ -513,11 +453,8 @@ export default function StudentAnnouncements() {
           </DialogHeader>
           {selectedAnnouncement && (
             <div className="space-y-4">
-              {/* Title and badges */}
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">
-                  {selectedAnnouncement.title}
-                </h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-3">{selectedAnnouncement.title}</h2>
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={getPriorityInfo(selectedAnnouncement.priority).color}>
                     {(() => {
@@ -533,35 +470,24 @@ export default function StudentAnnouncements() {
                     })()}
                     {selectedAnnouncement.type}
                   </Badge>
-                  {selectedAnnouncement.classId === 'all' ? (
-                    <Badge variant="secondary">All Classes</Badge>
-                  ) : (
-                    <Badge variant="secondary">{selectedAnnouncement.className}</Badge>
-                  )}
+                  <Badge variant="secondary">{selectedAnnouncement.className}</Badge>
                 </div>
               </div>
 
-              {/* Divider */}
               <div className="border-t border-gray-200" />
 
-              {/* Message */}
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Message</h3>
-                <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
-                  {selectedAnnouncement.message}
-                </p>
+                <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{selectedAnnouncement.message}</p>
               </div>
 
-              {/* Divider */}
               <div className="border-t border-gray-200" />
 
-              {/* Metadata */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-1">Posted By</h3>
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs"
-                         style={{ backgroundColor: COLLEGE_COLORS.lightGreen }}>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs" style={{ backgroundColor: COLLEGE_COLORS.lightGreen }}>
                       {selectedAnnouncement.createdBy.split(' ').map(n => n[0]).join('')}
                     </div>
                     <p className="text-sm text-gray-600">{selectedAnnouncement.createdBy}</p>
@@ -598,9 +524,7 @@ export default function StudentAnnouncements() {
               {selectedAnnouncement.updatedAt && (
                 <>
                   <div className="border-t border-gray-200" />
-                  <div className="text-xs text-gray-500">
-                    Last updated: {formatDate(selectedAnnouncement.updatedAt)}
-                  </div>
+                  <div className="text-xs text-gray-500">Last updated: {formatDate(selectedAnnouncement.updatedAt)}</div>
                 </>
               )}
             </div>

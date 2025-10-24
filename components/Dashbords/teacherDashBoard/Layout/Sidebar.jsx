@@ -1,3 +1,4 @@
+// components/TeacherDashboard/Layout/Sidebar.jsx
 import { useState } from 'react';
 import { 
   BookOpen, Calendar, Users, FileText, BarChart3, ClipboardCheck, LogOut, X, ChevronDown 
@@ -28,7 +29,16 @@ const sidebarItems = [
       { key: 'reports', label: 'Attendance Report' },
     ]
   },
-  { key: 'assignments', label: 'Assignments', icon: FileText },
+  { 
+    key: 'assignments', 
+    label: 'Assignments & Lectures', 
+    icon: FileText, 
+    hasSubmenu: true,
+    submenu: [
+      { key: 'assignments', label: 'Assignments' },
+      { key: 'lectures', label: 'Lectures' },
+    ] 
+  },
   { key: 'announcements', label: 'Announcements', icon: ClipboardCheck },
   { key: 'schedule', label: 'Schedule', icon: Calendar },
 ];
@@ -46,8 +56,8 @@ export default function Sidebar({
   setAssigmentSection,
   announcementSection,
   setAnnouncementSection,
-  scheduleSection,          // ✅ receive here
-  setScheduleSection,       // ✅ receive here     
+  scheduleSection,          
+  setScheduleSection,         
   onLogout = () => {}
 }) {
   const [openMenus, setOpenMenus] = useState({});
@@ -56,16 +66,28 @@ export default function Sidebar({
     setOpenMenus(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const handleSubmenuClick = (itemKey, subKey) => {
+    if (itemKey === 'grading') {
+      setActiveSection('grading');
+      setGradingSection(subKey);
+    } else if (itemKey === 'attendance') {
+      setActiveSection('attendance');
+      setAttendanceSection(subKey);
+    } else if (itemKey === 'assignments') {
+      setActiveSection('assignments');
+      setAssigmentSection(subKey); // ← YE HAI MAGIC
+    }
+    setSidebarOpen(false);
+  };
+
   const SidebarContent = (
-    // NOTE: min-h-0 is important so that the nav (flex child) can overflow/scroll correctly
     <div className="flex flex-col h-screen min-h-0" style={{ backgroundColor: COLLEGE_COLORS.darkGreen }}>
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-white/10">
-        <div className="flex items-center space-x-3">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: COLLEGE_COLORS.lightGreen }}
-          >
+        <div
+
+ className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLLEGE_COLORS.lightGreen }}>
             <BookOpen className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -73,16 +95,12 @@ export default function Sidebar({
             <p className="text-green-200 text-sm">Learning Dashboard</p>
           </div>
         </div>
-        <button
-          onClick={() => setSidebarOpen(false)}
-          className="lg:hidden text-white hover:bg-white/5 p-1 rounded"
-          aria-label="Close sidebar"
-        >
+        <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-white hover:bg-white/5 p-1 rounded">
           <X className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Navigation - make this scrollable */}
+      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-4">
         <ul className="space-y-2">
           {sidebarItems.map((item) => (
@@ -99,9 +117,7 @@ export default function Sidebar({
                 }}
                 className={`
                   flex items-center justify-between px-4 py-3 rounded-lg cursor-pointer transition-colors
-                  ${activeSection === item.key && !item.hasSubmenu
-                    ? 'text-white'
-                    : 'text-green-100 hover:bg-white/5 hover:text-white'}
+                  ${activeSection === item.key && !item.hasSubmenu ? 'text-white' : 'text-green-100 hover:bg-white/5 hover:text-white'}
                 `}
                 style={activeSection === item.key && !item.hasSubmenu ? { backgroundColor: COLLEGE_COLORS.lightGreen } : {}}
               >
@@ -110,9 +126,7 @@ export default function Sidebar({
                   <span>{item.label}</span>
                 </div>
                 {item.hasSubmenu && (
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform ${openMenus[item.key] ? 'rotate-180' : ''}`}
-                  />
+                  <ChevronDown className={`w-4 h-4 transition-transform ${openMenus[item.key] ? 'rotate-180' : ''}`} />
                 )}
               </div>
 
@@ -122,28 +136,21 @@ export default function Sidebar({
                   {item.submenu.map((sub) => (
                     <li
                       key={sub.key}
-                      onClick={() => {
-                        if (item.key === 'grading') {
-                          setActiveSection('grading');
-                          setGradingSection(sub.key);
-                        } else if (item.key === 'attendance') {
-                          setActiveSection('attendance');
-                          setAttendanceSection(sub.key); 
-                        }
-                        setSidebarOpen(false);
-                      }}
+                      onClick={() => handleSubmenuClick(item.key, sub.key)}
                       className={`
                         px-3 py-2 text-sm rounded cursor-pointer
                         ${
                           (item.key === 'grading' && gradingSection === sub.key && activeSection === 'grading') ||
-                          (item.key === 'attendance' && attendanceSection === sub.key && activeSection === 'attendance')
+                          (item.key === 'attendance' && attendanceSection === sub.key && activeSection === 'attendance') ||
+                          (item.key === 'assignments' && assigmentSection === sub.key && activeSection === 'assignments')
                             ? 'text-white'
                             : 'text-green-200 hover:text-white hover:bg-white/5'
                         }
                       `}
                       style={
                         (item.key === 'grading' && gradingSection === sub.key && activeSection === 'grading') ||
-                        (item.key === 'attendance' && attendanceSection === sub.key && activeSection === 'attendance')
+                        (item.key === 'attendance' && attendanceSection === sub.key && activeSection === 'attendance') ||
+                        (item.key === 'assignments' && assigmentSection === sub.key && activeSection === 'assignments')
                           ? { backgroundColor: COLLEGE_COLORS.lightGreen }
                           : {}
                       }
@@ -153,18 +160,14 @@ export default function Sidebar({
                   ))}
                 </ul>
               )}
-
             </li>
           ))}
         </ul>
       </nav>
 
-      {/* Footer */}
+      {/* Logout */}
       <div className="p-4 border-t border-white/10">
-        <div
-          onClick={onLogout}
-          className="flex items-center space-x-3 px-4 py-3 rounded-lg text-green-100 hover:bg-white/5 hover:text-white cursor-pointer transition-colors"
-        >
+        <div onClick={onLogout} className="flex items-center space-x-3 px-4 py-3 rounded-lg text-green-100 hover:bg-white/5 hover:text-white cursor-pointer">
           <LogOut className="w-5 h-5" />
           <span>Logout</span>
         </div>
@@ -174,22 +177,11 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Desktop Sidebar: ensure it fills viewport height */}
-      <div className="hidden lg:block lg:w-72 lg:shrink-0 h-screen">
-        {SidebarContent}
-      </div>
-
-      {/* Mobile Sidebar */}
+      <div className="hidden lg:block lg:w-72 lg:shrink-0 h-screen">{SidebarContent}</div>
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
-          <div
-            className="fixed inset-0 bg-black/50"
-            onClick={() => setSidebarOpen(false)}
-          />
-          {/* make drawer full-height so its inner nav can scroll */}
-          <div className="relative w-72 h-screen bg-green-900 shadow-xl">
-            {SidebarContent}
-          </div>
+          <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+          <div className="relative w-72 h-screen bg-green-900 shadow-xl">{SidebarContent}</div>
         </div>
       )}
     </>

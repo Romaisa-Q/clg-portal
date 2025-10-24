@@ -26,7 +26,7 @@ import { Button } from '../../../ui/button.jsx';
 import { Badge } from '../../../ui/badge.jsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/select.jsx';
 import { Input } from '../../../ui/input.jsx';
-import { Textarea } from '../../../ui/textarea.tsx';
+import { Textarea } from '../../../ui/textarea';
 import { Label } from '../../../ui/label.jsx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../ui/dialog.jsx';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../ui/tabs.jsx';

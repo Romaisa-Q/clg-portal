@@ -7,7 +7,7 @@ import { COLLEGE_COLORS } from '../../../constants/colors';
 
 const sidebarItems = [
   { key: 'overview', label: 'Overview', icon: BarChart3 },
-  { key: 'classList', label: 'Class List', icon: BookOpen },
+  { key: 'Lectures', label: 'Lectures & Notes', icon: BookOpen },
   { 
     key: 'grading', 
     label: 'Grading', 
@@ -31,13 +31,8 @@ const sidebarItems = [
   },
   { 
     key: 'assignments', 
-    label: 'Assignments & Lectures', 
+    label: 'Assignments', 
     icon: FileText, 
-    hasSubmenu: true,
-    submenu: [
-      { key: 'assignments', label: 'Assignments' },
-      { key: 'lectures', label: 'Lectures' },
-    ] 
   },
   { key: 'announcements', label: 'Announcements', icon: ClipboardCheck },
   { key: 'schedule', label: 'Schedule', icon: Calendar },

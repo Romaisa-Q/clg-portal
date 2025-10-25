@@ -33,7 +33,7 @@ export function LoginHeader() {
         <CardDescription
           className="text-base"
           style={{
-            color: COLLEGE_COLORS.gray,
+            color: COLLEGE_COLORS.darkGreen,
             fontFamily: "Lato, system-ui, sans-serif",
           }}
         >

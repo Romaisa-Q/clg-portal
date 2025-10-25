@@ -45,12 +45,12 @@ export default function LoginPage() {
 
       {/* Footer */}
      <div className="absolute bottom-20 sm:bottom-2 left-1/2 transform -translate-x-1/2 z-10">
-  <p
+  {/* <p
     className="text-sm text-center"
     style={{ color: COLLEGE_COLORS.lightGray }}
   >
     © 2025 College Portal. All rights reserved.
-  </p>
+  </p> */}
 </div>
 
     </div>

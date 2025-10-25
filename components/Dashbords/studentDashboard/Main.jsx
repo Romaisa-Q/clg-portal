@@ -9,8 +9,11 @@ import { DashboardHeader } from "./Layout/Header";
 // Pages / Sections
 import Dashboard from "./dashboard/dashboard";
 import Announcements from "./Annoucements/announcements";
-import ViewAttendance from "./Attendance/ViewAttendance"; // ✅ Separate components
-import AttendanceReport from "./Attendance/AttendanceReport"; // ✅ Separate components
+import ViewAttendance from "./Attendance/ViewAttendance"; 
+import AttendanceReport from "./Attendance/AttendanceReport"; 
+import Lectures from "./Lectures & Notes/Lectures";
+import StudentAssignments from "./Assignments/assignments";
+import StudentProfile from "./Profile/Profile"
 
 export default function Main() {
   const router = useRouter();
@@ -70,19 +73,14 @@ export default function Main() {
           {activeSection === "announcements" && <Announcements />}
           {activeSection === "view-attendance" && <ViewAttendance />}
           {activeSection === "attendance-report" && <AttendanceReport />}
+           {activeSection === "lectures" && <Lectures />}
+             {activeSection === "assignments" && <StudentAssignments />}
+
 
           {/* Placeholder for undeveloped sections */}
-          {activeSection !== "dashboard" &&
-            activeSection !== "announcements" &&
-            activeSection !== "view-attendance" &&
-            activeSection !== "attendance-report" && (
-              <div className="text-center mt-20 text-gray-600">
-                <h2 className="text-xl font-semibold">
-                  Section under development
-                </h2>
-                <p>Select a different item from the sidebar.</p>
-              </div>
-            )}
+          {activeSection == "profile" && <StudentProfile/>
+
+            }
         </main>
       </div>
     </div>

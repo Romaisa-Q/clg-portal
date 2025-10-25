@@ -5,11 +5,11 @@ import Overview from './Overview/Oveview';
 import DashboardHeader from './Layout/Header';
 import { useRouter } from 'next/router';
 import Grading from './Grading/Grading';
-import ClassList from './MyClasses/ClassList';
+import Lectures from './Lectures & Notes/Lecture';
 import Attendance from './Attendance/Attendance';
-import Assignments from './Assigments&Lectures/AssignmentsMain';
+import Assignments from './Assigments/assigments';
 import Announcements from './Annoucements/Annoucements';
-import Schedule from "./shedule/shedule";
+import Schedule from "./shedule/shedule.jsx";
 
 export default function Main() {
   const router = useRouter();
@@ -75,7 +75,7 @@ export default function Main() {
 
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
           {activeSection === 'overview' && <Overview />}
-          {activeSection === 'classList' && <ClassList />}
+          {activeSection === 'Lectures' && <Lectures />}
           {activeSection === 'grading' && <Grading defaultSection={gradingSection} />}
           {activeSection === 'attendance' && <Attendance defaultSection={attendanceSection} />}
           {activeSection === 'assignments' && <Assignments defaultSection={assigmentSection} />}

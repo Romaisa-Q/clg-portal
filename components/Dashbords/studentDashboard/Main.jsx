@@ -11,7 +11,7 @@ import Dashboard from "./dashboard/dashboard";
 import Announcements from "./Annoucements/announcements";
 import ViewAttendance from "./Attendance/ViewAttendance"; 
 import AttendanceReport from "./Attendance/AttendanceReport"; 
-import Lectures from "./Lectures & Notes/Lectures";
+import Lectures from "./LecturesAndNotes/Lectures";
 import StudentAssignments from "./Assignments/assignments";
 import StudentProfile from "./Profile/Profile"
 

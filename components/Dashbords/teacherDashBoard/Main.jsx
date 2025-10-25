@@ -5,7 +5,7 @@ import Overview from './Overview/Oveview';
 import DashboardHeader from './Layout/Header';
 import { useRouter } from 'next/router';
 import Grading from './Grading/Grading';
-import Lectures from './Lectures & Notes/Lecture';
+import Lectures from './LecturesAndNotes/Lecture';
 import Attendance from './Attendance/Attendance';
 import Assignments from './Assigments/assigments';
 import Announcements from './Annoucements/Annoucements';

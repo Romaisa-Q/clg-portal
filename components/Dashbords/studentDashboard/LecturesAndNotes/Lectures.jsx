@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { 
   BookOpen, 
   Video, 
@@ -25,6 +26,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../ui/dialog';
 import { COLLEGE_COLORS } from '../../../constants/colors.js';
 
+// API Base
+const API_BASE = 'http://localhost:5000/api/lectures';
+
 // Static Student Data
 const studentData = {
   name: 'Ahmed Ali',
@@ -34,114 +38,6 @@ const studentData = {
   section: 'A',
   classId: 'bscs-8a'
 };
-
-// Static Lectures & Notes Data
-const lecturesData = [
-  {
-    id: 1,
-    title: 'Introduction to Data Structures',
-    subject: 'Data Structures',
-    type: 'video',
-    url: 'https://www.youtube.com/watch?v=example1',
-    uploadedBy: 'Dr. Muhammad Hassan',
-    uploadedAt: '2025-10-20T10:00:00',
-    duration: '45 mins',
-    description: 'Basic concepts of data structures including arrays, linked lists, and their applications.',
-    views: 156,
-    classId: 'bscs-8a'
-  },
-  {
-    id: 2,
-    title: 'Database Normalization Notes',
-    subject: 'Database Systems',
-    type: 'pdf',
-    fileName: 'DB_Normalization.pdf',
-    fileSize: '2.4 MB',
-    uploadedBy: 'Dr. Fatima Khan',
-    uploadedAt: '2025-10-19T14:30:00',
-    description: 'Complete notes on database normalization forms (1NF, 2NF, 3NF, BCNF) with examples.',
-    downloads: 89,
-    classId: 'bscs-8a'
-  },
-  {
-    id: 3,
-    title: 'Object Oriented Programming - Lecture 10',
-    subject: 'OOP',
-    type: 'video',
-    url: 'https://www.youtube.com/watch?v=example2',
-    uploadedBy: 'Dr. Ali Raza',
-    uploadedAt: '2025-10-18T09:00:00',
-    duration: '60 mins',
-    description: 'Polymorphism and inheritance concepts with practical examples in Java.',
-    views: 203,
-    classId: 'bscs-8a'
-  },
-  {
-    id: 4,
-    title: 'Software Engineering Chapter 5',
-    subject: 'Software Engineering',
-    type: 'pdf',
-    fileName: 'SE_Chapter5_Requirements.pdf',
-    fileSize: '3.1 MB',
-    uploadedBy: 'Dr. Sarah Ahmed',
-    uploadedAt: '2025-10-17T11:00:00',
-    description: 'Requirements engineering, elicitation techniques, and use case modeling.',
-    downloads: 145,
-    classId: 'bscs-8a'
-  },
-  {
-    id: 5,
-    title: 'Computer Networks - OSI Model',
-    subject: 'Computer Networks',
-    type: 'video',
-    url: 'https://www.youtube.com/watch?v=example3',
-    uploadedBy: 'Dr. Imran Malik',
-    uploadedAt: '2025-10-16T15:30:00',
-    duration: '55 mins',
-    description: 'Detailed explanation of OSI 7-layer model and its practical applications.',
-    views: 178,
-    classId: 'bscs-8a'
-  },
-  {
-    id: 6,
-    title: 'Algorithm Analysis Notes',
-    subject: 'Algorithms',
-    type: 'pdf',
-    fileName: 'Algorithm_Complexity.pdf',
-    fileSize: '1.8 MB',
-    uploadedBy: 'Dr. Ayesha Siddiqui',
-    uploadedAt: '2025-10-15T10:00:00',
-    description: 'Time and space complexity analysis with Big-O notation examples.',
-    downloads: 167,
-    classId: 'bscs-8a'
-  },
-  {
-    id: 7,
-    title: 'Web Development - React Hooks',
-    subject: 'Web Development',
-    type: 'video',
-    url: 'https://www.youtube.com/watch?v=example4',
-    uploadedBy: 'Dr. Zainab Ali',
-    uploadedAt: '2025-10-14T13:00:00',
-    duration: '70 mins',
-    description: 'Complete guide to React Hooks including useState, useEffect, and custom hooks.',
-    views: 234,
-    classId: 'bscs-8a'
-  },
-  {
-    id: 8,
-    title: 'Machine Learning Lecture Notes',
-    subject: 'Machine Learning',
-    type: 'pdf',
-    fileName: 'ML_Supervised_Learning.pdf',
-    fileSize: '4.2 MB',
-    uploadedBy: 'Dr. Kamran Shah',
-    uploadedAt: '2025-10-13T09:30:00',
-    description: 'Supervised learning algorithms: Linear Regression, Logistic Regression, and Decision Trees.',
-    downloads: 198,
-    classId: 'bscs-8a'
-  }
-];
 
 // Format helpers
 const formatTimeAgo = (dateStr) => {
@@ -214,7 +110,7 @@ function ViewModeToggle({ viewMode, setViewMode }) {
 
 // Lecture Card Component (Grid/List View)
 function LectureCard({ lecture, onClick, onAction }) {
-  const isVideo = lecture.type === 'video';
+  const isVideo = lecture.lectureType === 'video';
   
   return (
     <Card 
@@ -255,11 +151,11 @@ function LectureCard({ lecture, onClick, onAction }) {
         <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
           <div className="flex items-center gap-1">
             <User className="w-3 h-3" />
-            <span>{lecture.uploadedBy}</span>
+            <span>{lecture.author}</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
-            <span>{formatTimeAgo(lecture.uploadedAt)}</span>
+            <span>{formatTimeAgo(lecture.uploadDate)}</span>
           </div>
         </div>
 
@@ -330,7 +226,7 @@ function EmptyState({ hasFilters, onClearFilters }) {
 function LectureDetailDialog({ lecture, open, onClose, onAction }) {
   if (!lecture) return null;
 
-  const isVideo = lecture.type === 'video';
+  const isVideo = lecture.lectureType === 'video';
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -387,9 +283,9 @@ function LectureDetailDialog({ lecture, open, onClose, onAction }) {
                   className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs"
                   style={{ backgroundColor: COLLEGE_COLORS.lightGreen }}
                 >
-                  {lecture.uploadedBy.split(' ').map(n => n[0]).join('')}
+                  {lecture.author.split(' ').map(n => n[0]).join('')}
                 </div>
-                <p className="text-sm text-gray-600">{lecture.uploadedBy}</p>
+                <p className="text-sm text-gray-600">{lecture.author}</p>
               </div>
             </div>
 
@@ -397,7 +293,7 @@ function LectureDetailDialog({ lecture, open, onClose, onAction }) {
               <h4 className="text-sm font-medium text-gray-700 mb-1">Uploaded On</h4>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-gray-400" />
-                <p className="text-sm text-gray-600">{formatDate(lecture.uploadedAt)}</p>
+                <p className="text-sm text-gray-600">{formatDate(lecture.uploadDate)}</p>
               </div>
             </div>
 
@@ -408,7 +304,7 @@ function LectureDetailDialog({ lecture, open, onClose, onAction }) {
               <div className="flex items-center gap-2">
                 {isVideo ? <Clock className="w-4 h-4 text-gray-400" /> : <File className="w-4 h-4 text-gray-400" />}
                 <p className="text-sm text-gray-600">
-                  {isVideo ? lecture.duration : lecture.fileSize}
+                  {isVideo ? lecture.duration : lecture.fileName}  {/* Adjust if needed */}
                 </p>
               </div>
             </div>
@@ -465,10 +361,19 @@ export default function StudentLecturesNotes() {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [viewMode, setViewMode] = useState('grid');
 
-  // Load static data on mount
+  // Load from backend
+  const loadLectures = async () => {
+    try {
+      const response = await axios.get(API_BASE);
+      const studentLectures = response.data.filter(l => l.classId === studentData.classId || l.classId === 'all');
+      setLectures(studentLectures);
+    } catch (error) {
+      console.error('Failed to load lectures:', error);
+    }
+  };
+
   useEffect(() => {
-    const studentLectures = lecturesData.filter(l => l.classId === studentData.classId);
-    setLectures(studentLectures);
+    loadLectures();
   }, []);
 
   // Filter lectures
@@ -484,14 +389,14 @@ export default function StudentLecturesNotes() {
     }
 
     if (typeFilter !== 'all') {
-      filtered = filtered.filter(l => l.type === typeFilter);
+      filtered = filtered.filter(l => l.lectureType === typeFilter);
     }
 
     if (subjectFilter !== 'all') {
       filtered = filtered.filter(l => l.subject === subjectFilter);
     }
 
-    filtered.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    filtered.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
     setFilteredLectures(filtered);
   }, [lectures, searchTerm, typeFilter, subjectFilter]);
 
@@ -505,16 +410,14 @@ export default function StudentLecturesNotes() {
   };
 
   // Handle download or play
-  const handleAction = (lecture) => {
-    if (lecture.type === 'video') {
-      if (lecture.url) {
-        window.open(lecture.url, '_blank');
-      }
-    } else {
-      alert(`Downloading: ${lecture.fileName || lecture.title}`);
-      // In real implementation, this would trigger actual download
-    }
-  };
+ const handleAction = async (lecture) => {
+  if (lecture.lectureType === 'video') {
+    window.open(lecture.videoUrl, '_blank');
+  } else {
+    // Real download
+    window.location.href = `http://localhost:5000/api/lectures/download/${lecture._id}`;
+  }
+};
 
   // Clear all filters
   const clearFilters = () => {
@@ -526,8 +429,8 @@ export default function StudentLecturesNotes() {
   // Stats
   const stats = {
     total: lectures.length,
-    videos: lectures.filter(l => l.type === 'video').length,
-    notes: lectures.filter(l => l.type === 'pdf').length,
+    videos: lectures.filter(l => l.lectureType === 'video').length,
+    notes: lectures.filter(l => l.lectureType === 'file').length,
     subjects: subjects.length
   };
 
@@ -598,7 +501,7 @@ export default function StudentLecturesNotes() {
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="video">Video Lectures</SelectItem>
-            <SelectItem value="pdf">Notes/PDFs</SelectItem>
+            <SelectItem value="file">Notes/PDFs</SelectItem>
           </SelectContent>
         </Select>
 
@@ -622,7 +525,7 @@ export default function StudentLecturesNotes() {
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}>
           {filteredLectures.map((lecture) => (
             <LectureCard
-              key={lecture.id}
+              key={lecture._id}  // Use _id from Mongo
               lecture={lecture}
               onClick={() => handleViewLecture(lecture)}
               onAction={handleAction}
